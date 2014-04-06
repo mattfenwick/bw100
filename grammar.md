@@ -1,20 +1,18 @@
 ## Grammar ##
 
-Allow any amount of whitespace between tokens (Word, Punc, and Close):
+Allow any amount of whitespace between tokens (Word and Close):
 
     Text        ::=  Sentence(*)
 
-    Sentence    ::=  Chunk  ( Punc  Chunk )(*)  Close
+    Sentence    ::=  Word(+)  Close
 
-    Chunk       ::=  Word(+)
-
-    Word        ::=  [a-ZA-Z]  |  SpecialWord
+    Word        ::=  SpecialWord  |  [a-ZA-Z](+)
 
     SpecialWord ::=  'i.e.'
 
-    Punc        ::=  ','  |  ':'
-
     Close       ::=  '.'  |  '!'  |  '?'
+
+    Whitespace  ::=  /[ \t\n,:]/
 
 ## Notes ##
 
@@ -24,6 +22,7 @@ Issues that are handled:
 
 Issues that aren't handled:
 
+ - punctuation within a sentence is just thrown away
  - ambiguity
  - distinguishing between an `i.e.` that ends a sentence
    and one that doesn't
