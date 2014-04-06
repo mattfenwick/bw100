@@ -1,5 +1,7 @@
 ## Grammar ##
 
+Allow any amount of whitespace between tokens (Word, Punc, and Close):
+
     Text        ::=  Sentence(*)
 
     Sentence    ::=  Chunk  ( Punc  Chunk )(*)  Close
