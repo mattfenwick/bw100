@@ -14,14 +14,19 @@ module("solution", function() {
     var bwExample = "Given an arbitrary text document written in English, write a program that will generate a concordance, i.e. an alphabetical list of all word occurrences, labeled with word frequencies. Bonus: label each word with the sentence numbers in which each occurrence appeared.";
     
     test('solve', function() {
-        deepEqual(S.solve(testData),
+        deepEqual(S.solve(testData).value,
                   [['ab', [1,2,2,3]], ['cd', [1]], ['de', [3]]]);
+    });
+    
+    test('solve error', function() {
+        deepEqual(S.solve('ab cd. ef gh'), // no period!
+                  {'type': 'error', 'value': [['text', 1], ['sentence', 2], ['close', 2]]});
     });
     
     test('solve bw', function() {
         var s = S.solve(bwExample);
 //        console.log(JSON.stringify(s, null, 2));
-        deepEqual(s,
+        deepEqual(s.value,
                   [['a', [1,1]],
                    ['all', [1]],
                    ['alphabetical', [1]],

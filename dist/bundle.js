@@ -1,15 +1,29 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-var parser = require('./lib/parser');
+var parser = require('./lib/parser'),
+    reducer = require('./lib/reducer'),
+    solution = require('./lib/solution');
 
 window.parser = parser;
+window.reducer = reducer;
+window.solution = solution;
+
+window.bw100 = function(str) {
+    var sol = solution.solve(str);
+    if ( sol.type === 'error' ) {
+        console.log(JSON.stringify(sol));
+    } else {
+        console.log(solution.format(sol.value));
+    }
+}
 
 module.exports = {
-
+    'bw100': bw100
 };
 
-},{"./lib/parser":2}],2:[function(require,module,exports){
+
+},{"./lib/parser":2,"./lib/reducer":3,"./lib/solution":4}],2:[function(require,module,exports){
 'use strict';
 
 var u = require('unparse-js'),
@@ -75,7 +89,98 @@ module.exports = {
     'munch'      : munch
 };
 
-},{"unparse-js":3}],3:[function(require,module,exports){
+},{"unparse-js":5}],3:[function(require,module,exports){
+'use strict';
+
+
+function extractWords(cst) {
+    var sentences = cst.value,
+        words = [];
+    sentences.map(function(s) {
+        s.words.map(function(w) {
+            words.push(w);
+        });
+    });
+    return words;
+}
+
+function extractWordValuePosition(word) {
+    var val = word.value;
+    return {
+        'value': (typeof val === 'string') ? val : val.join(''), 
+        'position': word._state
+    };
+}
+
+function countWords(words) {
+    var counter = Object.create(null);
+    words.map(function(w) {
+        var key = w.value.toLowerCase();
+        if ( !(key in counter) ) {
+            counter[key] = [];
+        }
+        counter[key].push(w.position);
+    });
+    return counter;
+}
+
+function reduce(cst) {
+    var words = extractWords(cst),
+        wordsWithPosition = words.map(extractWordValuePosition);
+    return countWords(wordsWithPosition);
+}
+
+
+module.exports = {
+    'extractWords': extractWords,
+    'extractWordValuePosition': extractWordValuePosition,
+    'countWords': countWords,
+    'reduce': reduce
+};
+
+
+},{}],4:[function(require,module,exports){
+'use strict';
+
+var parser = require('./parser'),
+    reducer = require('./reducer');
+
+function format(wordCounts) {
+    var lines = wordCounts.map(function(wc, ix) {
+        var index = ix + 1;
+        return [index.toString(), '. ', wc[0], ' \t',
+                JSON.stringify({'count': wc[1].length, 'positions': wc[1]})].join('');
+    });
+    return lines.join('\n');
+}
+
+/*
+questions that weren't satisfactorily answered in the spec:
+ - is case important?
+ - should the output be a string, or a data structure?
+   - if it's a string, how should the numbering work?
+*/
+function solve(str) {
+    var parse_result = parser.parse(str);
+    if ( parse_result.status !== 'success' ) {
+        return {'type': 'error', 'value': parse_result.value};
+    }
+    var counter = reducer.reduce(parse_result.value.result);
+    var sorted = [];
+    Object.getOwnPropertyNames(counter).sort().map(function(key) {
+        sorted.push([key, counter[key]]);
+    });
+    return {'type': 'success', 'value': sorted};
+}
+
+
+module.exports = {
+    'solve': solve,
+    'format': format
+};
+
+
+},{"./parser":2,"./reducer":3}],5:[function(require,module,exports){
 'use strict';
 
 
@@ -86,7 +191,7 @@ module.exports = {
 };
 
 
-},{"./lib/combinators.js":4,"./lib/cst.js":5,"./lib/maybeerror.js":6}],4:[function(require,module,exports){
+},{"./lib/combinators.js":6,"./lib/cst.js":7,"./lib/maybeerror.js":8}],6:[function(require,module,exports){
 "use strict";
 
 var M = require('./maybeerror.js');
@@ -618,7 +723,7 @@ module.exports = {
 };
 
 
-},{"./maybeerror.js":6}],5:[function(require,module,exports){
+},{"./maybeerror.js":8}],7:[function(require,module,exports){
 "use strict";
 
 var C = require('./combinators.js');
@@ -760,7 +865,7 @@ module.exports = {
 };
 
 
-},{"./combinators.js":4}],6:[function(require,module,exports){
+},{"./combinators.js":6}],8:[function(require,module,exports){
 "use strict";
 
 var STATUSES = {
